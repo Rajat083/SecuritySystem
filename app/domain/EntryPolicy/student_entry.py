@@ -1,0 +1,23 @@
+from datetime import datetime 
+from typing import Any, Optional 
+
+from app.domain.EntryPolicy.entry_policy import EntryPolicy 
+from app.domain.EntryPolicy.violations import EntryViolation
+
+class StudentEntryPolicy(EntryPolicy):
+    
+    async def validate_entry(self, **context: Any) -> Optional[EntryViolation]:
+        allowed_until: Optional[datetime] = context.get("allowed_until")
+        current_time: datetime = context.get("current_time", datetime.now()) 
+        
+        if allowed_until is None:
+            return None
+         
+        if current_time <= allowed_until:
+            return None 
+        
+        return EntryViolation(
+            code="LATE_ENTRY", 
+            allowed_until=allowed_until, 
+            entered_at=current_time
+        )
