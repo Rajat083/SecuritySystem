@@ -5,7 +5,14 @@ from pydantic import BaseModel, Field
 
 
 UserType = Literal["student", "visitor"]
-
+PhoneNumber = Annotated[
+    str,
+    Field(
+        pattern=r"^[6-9]\d{9}$",
+        description="Phone number in E.164 format",
+        example="+1234567890"
+    )
+]
 
 class CampusState(BaseModel):
     """
@@ -14,9 +21,8 @@ class CampusState(BaseModel):
     This is a DERIVED state, not a source of truth.
     Source of truth = access logs.
     """
-
     user_type: UserType
-
+    
     identifier: Annotated[
         str,
         Field(
@@ -24,6 +30,18 @@ class CampusState(BaseModel):
             example="21BCS123"
         )
     ]
+    
+    user_name: Annotated[
+        str,
+        Field(
+            description="Name of the person",
+            example="John Doe"
+        )
+    ]
+    
+    phone_number: PhoneNumber
+    
+    number_of_visitors: Optional[int] = None
 
     is_inside: Annotated[
         bool,

@@ -53,10 +53,16 @@ class VisitorEntryService:
             user_type="visitor",
             identifier=visitor.identifier,
             direction=Direction.ENTRY,
-            gate_number=gate_number
+            gate_number=gate_number,
+            name=name,
+            phone_number=phone_number,
+            number_of_visitors=number_of_visitors
         )
 
         await self._state.mark_inside(
+            user_name=visitor.name,
+            phone_number=visitor.phone_number,
+            number_of_visitors=visitor.number_of_visitors,
             user_type="visitor",
             identifier=visitor.identifier
         )

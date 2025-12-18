@@ -2,7 +2,7 @@ from datetime import datetime
 
 from app.core.database.collections import campus_state_collection
 from app.models.campus_state import CampusState
-
+from typing import Optional
 
 class CampusStateService:
     """
@@ -30,6 +30,9 @@ class CampusStateService:
     async def mark_inside(
         self,
         *,
+        phone_number: str,
+        number_of_visitors: Optional[int] = None,
+        user_name: str,
         user_type: str,
         identifier: str
     ) -> None:
@@ -38,10 +41,13 @@ class CampusStateService:
         """
 
         state = CampusState(
+            user_name=user_name,
+            phone_number=phone_number,
+            number_of_visitors=number_of_visitors,
             user_type=user_type,
             identifier=identifier,
             is_inside=True,
-            last_entry_time=datetime.utcnow(),
+            last_entry_time=datetime.now(),
             last_exit_time=None
         )
 
@@ -70,10 +76,12 @@ class CampusStateService:
         
         if user_type == "visitor":
             # Delete visitor record completely on exit
-            await campus_state_collection.delete_one({
+            result = await campus_state_collection.delete_one({
                 "user_type": user_type,
                 "identifier": identifier
             })
+            print(f"Deleted visitor {identifier}, deleted_count: {result.deleted_count}")
+            
         else:
             # For students, just mark as outside
             await campus_state_collection.update_one(
@@ -84,7 +92,7 @@ class CampusStateService:
                 {
                     "$set": {
                         "is_inside": False,
-                        "last_exit_time": datetime.utcnow()
+                        "last_exit_time": datetime.now()
                     }
                 },
                 upsert=True

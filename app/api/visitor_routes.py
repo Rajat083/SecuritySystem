@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Query
 
 from app.schemas.visitor_entry import VisitorEntryRequest
 from app.services.access.visitor_entry_service import VisitorEntryService
@@ -26,7 +26,7 @@ async def visitor_entry(req: VisitorEntryRequest = Body(...)):
 
 
 @router.post("/exit/{visitor_id}")
-async def visitor_exit(visitor_id: str, gate_number: int):
+async def visitor_exit(visitor_id: str, gate_number: int = Query(..., ge=1, le=10)):
     service = VisitorExitService()
     await service.execute(visitor_id=visitor_id, gate_number=gate_number)
 

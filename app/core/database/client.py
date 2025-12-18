@@ -1,22 +1,31 @@
-from motor.motor_asyncio import  AsyncIOMotorClient 
+from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Final
+from dotenv import load_dotenv
 import os
 
-MONGODB_URI: Final[str] = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
-DATABASE_NAME: Final[str] = os.getenv("DATABASE_NAME", "mydatabase")
+load_dotenv()
 
+MONGODB_URI: Final[str] = os.getenv("MONGO_URI")
+DATABASE_NAME: Final[str] = os.getenv("DATABASE_NAME", "campus_security")
 
 class MongoClient:
-    
-    _cllient: AsyncIOMotorClient | None = None
-    
-    @classmethod 
+    _client: AsyncIOMotorClient | None = None
+
+    @classmethod
     def get_client(cls) -> AsyncIOMotorClient:
-        if cls._cllient is None:
-            cls._cllient = AsyncIOMotorClient(MONGODB_URI)
-        return cls._cllient 
-    
+        if cls._client is None:
+            if not MONGODB_URI:
+                raise RuntimeError("MONGO_URI is not set")
+            cls._client = AsyncIOMotorClient(MONGODB_URI)
+        return cls._client
+
     @classmethod
     def get_database(cls):
         client = cls.get_client()
-        return cls.get_client()[DATABASE_NAME]
+        return client[DATABASE_NAME]
+
+    @classmethod
+    def close_client(cls):
+        if cls._client:
+            cls._client.close()
+            cls._client = None

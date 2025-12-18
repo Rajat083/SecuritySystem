@@ -17,16 +17,24 @@ class AccessLogService:
         identifier:  str,
         direction: Direction,
         gate_number: int,
+        name: str = "UNKNOWN",
+        phone_number: str = "9999999999",
+        number_of_visitors: Optional[int] = None,
         purpose: Optional[str] = None
     ) -> None:
         log_entry = {
             "user_type": user_type,
             "identifier": identifier,
+            "name": name,
+            "phone_number": phone_number,
             "direction": direction.value,
             "gate_number": gate_number,
             "purpose": purpose,
             "timestamp": datetime.now()
         }
+        
+        if user_type == "visitor" and number_of_visitors is not None:
+            log_entry["number_of_visitors"] = number_of_visitors
         
         # Log to general access_logs
         await access_logs_collection.insert_one(log_entry.copy())
