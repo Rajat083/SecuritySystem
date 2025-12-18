@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, Body, Query, Depends
 
 from app.schemas.visitor_entry import VisitorEntryRequest
 from app.services.access.visitor_entry_service import VisitorEntryService
 from app.services.access.visitor_exit_service import VisitorExitService
-
+from app.api.permissions import require_role
 router = APIRouter()
 
 
-@router.post("/entry")
+@router.post("/entry",
+             dependencies=[Depends(require_role("GUARD"))])
 async def visitor_entry(req: VisitorEntryRequest = Body(...)):
     service = VisitorEntryService()
 
@@ -25,7 +26,8 @@ async def visitor_entry(req: VisitorEntryRequest = Body(...)):
     }
 
 
-@router.post("/exit/{visitor_id}")
+@router.post("/exit/{visitor_id}",
+             dependencies=[Depends(require_role("GUARD"))])
 async def visitor_exit(visitor_id: str, gate_number: int = Query(..., ge=1, le=10)):
     service = VisitorExitService()
     await service.execute(visitor_id=visitor_id, gate_number=gate_number)

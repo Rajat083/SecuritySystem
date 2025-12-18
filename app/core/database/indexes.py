@@ -18,3 +18,8 @@ async def create_indexes(db):
     await db["exit_permissions"].create_index(
         [("student_roll", 1)]
     )
+    
+    await db["students"].create_index(
+        [("roll_number", 1)],
+        unique=True
+    )

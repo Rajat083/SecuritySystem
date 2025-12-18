@@ -15,3 +15,7 @@ campus_state_collection: AsyncIOMotorCollection = db["campus_state"]
 exit_permissions_collection: AsyncIOMotorCollection = db["exit_permissions"] 
 
 visitors_collection: AsyncIOMotorCollection = db["visitors"]
+
+students_collection: AsyncIOMotorCollection = db["students"]
+
+auth_users_collection = db["auth_users"]

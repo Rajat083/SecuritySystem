@@ -5,7 +5,7 @@ from app.domain.Users.student import Student
 from app.domain.EntryPolicy.student_entry import StudentEntryPolicy 
 from app.domain.EntryPolicy.violations import EntryViolation 
 from app.core.enums import Direction 
-from app.core.database.collections import exit_permissions_collection, campus_state_collection
+from app.core.database.collections import exit_permissions_collection, campus_state_collection, students_collection
 from app.services.campus_state_service import CampusStateService 
 from app.services.access_log_service import AccessLogService 
 
@@ -21,12 +21,15 @@ class StudentEntryService:
         self,
         *,
         roll_number: str,
+        name: str,
+        phone_number: str,
         gate_number: int
     ) -> Optional[EntryViolation]:
         
+        # Create Student domain object with provided data
         student = Student(
-            name="UNKNOWN",
-            phone_number="9999999999",
+            name=name,
+            phone_number=phone_number,
             roll_number=roll_number
         )
         
@@ -61,29 +64,22 @@ class StudentEntryService:
                 "student_roll": student.identifier
             })
         
-        # Try to get existing student info from campus_state, or use defaults
-        existing_state = await campus_state_collection.find_one({
-            "user_type": "student",
-            "identifier": student.identifier
-        })
-        
-        name = existing_state.get("user_name", "UNKNOWN") if existing_state else "UNKNOWN"
-        phone_number = existing_state.get("phone_number", "9999999999") if existing_state else "9999999999"
-        
+        # Update campus state with student info
         await self._state.mark_inside(
             user_type="student",
             identifier=student.identifier,
-            user_name=name,
-            phone_number=phone_number
+            user_name=student.name,
+            phone_number=student.phone_number
         )
         
+        # Log the entry
         await self._log.log(
             user_type="student",
             identifier=student.identifier,
             direction=Direction.ENTRY,
             gate_number=gate_number,
-            name=name,
-            phone_number=phone_number
+            name=student.name,
+            phone_number=student.phone_number
         )
         
         return violation

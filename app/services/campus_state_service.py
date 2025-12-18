@@ -50,17 +50,22 @@ class CampusStateService:
             last_entry_time=datetime.now(),
             last_exit_time=None
         )
-
-        await campus_state_collection.update_one(
-            {
+        if user_type == "visitor":
+            await campus_state_collection.update_one(
+                {
+                    "user_type": user_type,
+                    "identifier": identifier
+                },
+                {
+                    "$set": state.dict()
+                },
+                upsert=True
+            )
+        else:
+            await campus_state_collection.delete_one({
                 "user_type": user_type,
                 "identifier": identifier
-            },
-            {
-                "$set": state.dict()
-            },
-            upsert=True
-        )
+            })
 
     async def mark_outside(
         self,

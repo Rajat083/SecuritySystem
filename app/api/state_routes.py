@@ -1,15 +1,17 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.core.database.collections import (
     campus_state_collection,
     student_logs_collection,
     visitor_logs_collection
 )
+from app.api.permissions import require_role
 from typing import List
 
 router = APIRouter()
 
 
-@router.get("/visitors/inside")
+@router.get("/visitors/inside", 
+            dependencies=[Depends(require_role("GUARD", "ADMIN"))])
 async def visitors_inside():
     """
     Returns all visitors currently inside the campus.
@@ -26,7 +28,8 @@ async def visitors_inside():
     return results
 
 
-@router.get("/students/outside")
+@router.get("/students/outside",
+            dependencies=[Depends(require_role("GUARD", "ADMIN"))])
 async def students_outside():
     """
     Returns all students currently outside the campus.
@@ -43,7 +46,8 @@ async def students_outside():
     return results
 
 
-@router.get("/logs/students")
+@router.get("/logs/students",
+            dependencies=[Depends(require_role("GUARD", "ADMIN"))])
 async def get_student_logs():
     """
     Returns all student entry/exit logs ordered by timestamp (newest first).
@@ -57,7 +61,8 @@ async def get_student_logs():
     return results
 
 
-@router.get("/logs/visitors")
+@router.get("/logs/visitors",
+            dependencies=[Depends(require_role("GUARD", "ADMIN"))])
 async def get_visitor_logs():
     """
     Returns all visitor entry/exit logs ordered by timestamp (newest first).

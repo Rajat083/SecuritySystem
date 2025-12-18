@@ -4,7 +4,7 @@ from typing import Optional
 from app.domain.Users.student import Student 
 from app.domain.ExitPolicy.student_exit_policy import StudentExitPolicy 
 from app.core.enums import Direction 
-from app.core.database.collections import exit_permissions_collection, campus_state_collection
+from app.core.database.collections import exit_permissions_collection, campus_state_collection, students_collection
 from app.services.campus_state_service import CampusStateService
 from app.services.access_log_service import AccessLogService 
 
@@ -20,16 +20,28 @@ class StudentExitService:
         self,
         *,
         roll_number: str,
+        name: str,
+        phone_number: str,
         purpose: str,
         return_by: datetime,
         gate_number: int
     ) -> None:
         
-        student  = Student(
-            name="UNKNOWN",
-            phone_number="0000000000",
-            roll_number=roll_number 
+        # Create Student domain object with provided data
+        student = Student(
+            name=name,
+            phone_number=phone_number,
+            roll_number=roll_number
         )
+        
+        # Check if student is already outside (has already exited)
+        existing_state = await self._state.get_state(
+            user_type="student",
+            identifier=student.identifier
+        )
+        
+        if existing_state and existing_state.get("is_inside") is False:
+            raise ValueError(f"Student {student.identifier} has already exited campus")
         
         await self._policy.validate_exit(
             purpose=purpose,
@@ -46,26 +58,18 @@ class StudentExitService:
             **artifact
         })
         
-        # Get student info from campus_state
-        existing_state = await campus_state_collection.find_one({
-            "user_type": "student",
-            "identifier": student.identifier
-        })
-        
-        name = existing_state.get("user_name", "UNKNOWN") if existing_state else "UNKNOWN"
-        phone_number = existing_state.get("phone_number", "9999999999") if existing_state else "9999999999"
+        # Mark student as outside before logging
+        await self._state.mark_outside(
+            user_type="student",
+            identifier=student.identifier
+        )
         
         await self._log.log(
             user_type="student",
             identifier=student.identifier,
             direction=Direction.EXIT,
             gate_number=gate_number,
-            name=name,
-            phone_number=phone_number,
+            name=student.name,
+            phone_number=student.phone_number,
             purpose=purpose
-        )
-        
-        await  self._state.mark_outside(
-            user_type="student",
-            identifier=student.identifier
         )
