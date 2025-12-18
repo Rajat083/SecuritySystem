@@ -356,10 +356,4 @@ The system provides clear error messages:
 - [ ] Multiple campus support
 - [ ] Emergency evacuation tracking
 
-## License
 
-This project is part of a campus security management system.
-
-## Contact
-
-For questions or support, contact the development team.
