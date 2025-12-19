@@ -32,7 +32,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://security-system-frontend-rc6ubczir-rajats-projects-7d7ad1aa.vercel.app",
+        "https://security-system-frontend-lovat.vercel.app/",
         "http://localhost:3000",  # For local development
         "http://localhost:5173",  # For Vite local development
     ],
