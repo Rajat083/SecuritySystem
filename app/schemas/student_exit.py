@@ -81,8 +81,9 @@ class StudentExitRequest(BaseModel):
         are enforced in the domain policy.
         """
         if self.return_by:
-            # Compare with timezone-naive utcnow
-            if self.return_by <= datetime.utcnow():
+            # Remove timezone info from return_by if present to compare with naive utcnow
+            return_time = self.return_by.replace(tzinfo=None) if self.return_by.tzinfo else self.return_by
+            if return_time <= datetime.utcnow():
                 raise ValueError("return_by must be in the future")
         return self
 

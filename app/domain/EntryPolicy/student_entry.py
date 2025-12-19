@@ -12,8 +12,12 @@ class StudentEntryPolicy(EntryPolicy):
         
         if allowed_until is None:
             return None
+        
+        # Remove timezone info for comparison if present
+        allowed_time = allowed_until.replace(tzinfo=None) if allowed_until.tzinfo else allowed_until
+        current = current_time.replace(tzinfo=None) if current_time.tzinfo else current_time
          
-        if current_time <= allowed_until:
+        if current <= allowed_time:
             return None 
         
         return EntryViolation(
