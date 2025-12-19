@@ -73,7 +73,8 @@ class CampusStateService:
         user_type: str,
         identifier: str,
         user_name: str = None,
-        phone_number: str = None
+        phone_number: str = None,
+        purpose: str = None
     ) -> None:
         """
         Mark a person as currently outside campus.
@@ -99,6 +100,8 @@ class CampusStateService:
                 update_data["user_name"] = user_name
             if phone_number:
                 update_data["phone_number"] = phone_number
+            if purpose:
+                update_data["purpose"] = purpose
             
             await campus_state_collection.update_one(
                 {

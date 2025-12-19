@@ -63,7 +63,8 @@ class StudentExitService:
             user_type="student",
             identifier=student.identifier,
             user_name=name,
-            phone_number=phone_number
+            phone_number=phone_number,
+            purpose=purpose
         )
         
         await self._log.log(

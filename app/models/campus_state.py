@@ -42,6 +42,14 @@ class CampusState(BaseModel):
     phone_number: PhoneNumber
     
     number_of_visitors: Optional[int] = None
+    
+    purpose: Annotated[
+        Optional[str],
+        Field(
+            description="Purpose of exit for students (HOME/MARKET)",
+            example="HOME"
+        )
+    ] = None
 
     is_inside: Annotated[
         bool,
