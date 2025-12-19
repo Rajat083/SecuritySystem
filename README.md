@@ -389,7 +389,7 @@ Returns all visitor entry/exit records ordered by timestamp (newest first).
 
 1. **Clone the repository:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/Rajat083/SecuritySystem
 cd SecuritySystem
 ```
 
