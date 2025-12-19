@@ -80,8 +80,10 @@ class StudentExitRequest(BaseModel):
         Business rules (12-hour limit etc.)
         are enforced in the domain policy.
         """
-        if self.return_by <= datetime.utcnow():
-            raise ValueError("return_by must be in the future")
+        if self.return_by:
+            # Compare with timezone-naive utcnow
+            if self.return_by <= datetime.utcnow():
+                raise ValueError("return_by must be in the future")
         return self
 
     class Config:

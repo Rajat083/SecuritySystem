@@ -30,7 +30,7 @@ class AccessLogService:
             "direction": direction.value,
             "gate_number": gate_number,
             "purpose": purpose,
-            "timestamp": datetime.now()
+            "timestamp": datetime.utcnow()
         }
         
         if user_type == "visitor" and number_of_visitors is not None:

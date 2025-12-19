@@ -56,7 +56,7 @@ class StudentEntryService:
             
             violation = await self._policy.validate_entry(
                 allowed_until=allowed_until,
-                current_time=datetime.now()
+                current_time=datetime.utcnow()
             )
             
             # Delete the exit permission after entry

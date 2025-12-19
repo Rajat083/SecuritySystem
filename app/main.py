@@ -29,7 +29,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, specify your frontend domain
@@ -37,6 +36,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+async def home():
+    return {"messaage" : "welcome"}
 
 app.include_router(student_router, prefix="/student", tags=["Student"])
 app.include_router(visitor_router, prefix="/visitor", tags=["Visitor"])

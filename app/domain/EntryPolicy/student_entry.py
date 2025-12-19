@@ -8,7 +8,7 @@ class StudentEntryPolicy(EntryPolicy):
     
     async def validate_entry(self, **context: Any) -> Optional[EntryViolation]:
         allowed_until: Optional[datetime] = context.get("allowed_until")
-        current_time: datetime = context.get("current_time", datetime.now()) 
+        current_time: datetime = context.get("current_time", datetime.utcnow()) 
         
         if allowed_until is None:
             return None

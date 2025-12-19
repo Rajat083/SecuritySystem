@@ -18,7 +18,7 @@ class StudentExitPolicy(ExitPolicy):
         
         purpose = context.get("purpose")
         return_by = context.get("return_by") 
-        now = datetime.now()
+        now = datetime.utcnow()
         
         if purpose not in ["MARKET", "HOME"]:
             raise ValueError("Invalid exit purpose provided.") 

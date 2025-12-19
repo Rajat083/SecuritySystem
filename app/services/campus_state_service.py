@@ -47,7 +47,7 @@ class CampusStateService:
             user_type=user_type,
             identifier=identifier,
             is_inside=True,
-            last_entry_time=datetime.now(),
+            last_entry_time=datetime.utcnow(),
             last_exit_time=None
         )
         if user_type == "visitor":
@@ -97,7 +97,7 @@ class CampusStateService:
                 {
                     "$set": {
                         "is_inside": False,
-                        "last_exit_time": datetime.now()
+                        "last_exit_time": datetime.utcnow()
                     }
                 },
                 upsert=True
