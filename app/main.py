@@ -28,6 +28,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+@app.get("/")
+async def():
+    return {"welcome")
+
 app.include_router(student_router, prefix="/student", tags=["Student"])
 app.include_router(visitor_router, prefix="/visitor", tags=["Visitor"])
 app.include_router(state_router, prefix="/state", tags=["Campus State"])
