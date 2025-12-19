@@ -71,7 +71,9 @@ class CampusStateService:
         self,
         *,
         user_type: str,
-        identifier: str
+        identifier: str,
+        user_name: str = None,
+        phone_number: str = None
     ) -> None:
         """
         Mark a person as currently outside campus.
@@ -88,17 +90,23 @@ class CampusStateService:
             print(f"Deleted visitor {identifier}, deleted_count: {result.deleted_count}")
             
         else:
-            # For students, just mark as outside
+            # For students, mark as outside and store user details
+            update_data = {
+                "is_inside": False,
+                "last_exit_time": datetime.utcnow()
+            }
+            if user_name:
+                update_data["user_name"] = user_name
+            if phone_number:
+                update_data["phone_number"] = phone_number
+            
             await campus_state_collection.update_one(
                 {
                     "user_type": user_type,
                     "identifier": identifier
                 },
                 {
-                    "$set": {
-                        "is_inside": False,
-                        "last_exit_time": datetime.utcnow()
-                    }
+                    "$set": update_data
                 },
                 upsert=True
             )

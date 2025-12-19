@@ -61,7 +61,9 @@ class StudentExitService:
         # Mark student as outside before logging
         await self._state.mark_outside(
             user_type="student",
-            identifier=student.identifier
+            identifier=student.identifier,
+            user_name=name,
+            phone_number=phone_number
         )
         
         await self._log.log(
