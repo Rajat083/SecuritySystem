@@ -30,7 +30,7 @@ app = FastAPI(
 
 @app.get("/")
 async def home():
-    return {"messaage" : "welcome")
+    return {"messaage" : "welcome"}
 
 app.include_router(student_router, prefix="/student", tags=["Student"])
 app.include_router(visitor_router, prefix="/visitor", tags=["Visitor"])
