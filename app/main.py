@@ -31,11 +31,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://security-system-frontend-lovat.vercel.app/",
-        "http://localhost:3000",  # For local development
-        "http://localhost:5173",  # For Vite local development
-    ],
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
