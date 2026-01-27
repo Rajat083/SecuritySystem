@@ -1,0 +1,9 @@
+export { LoginPage } from './LoginPage';
+export { DashboardPage } from './DashboardPage';
+export { StudentsPage } from './StudentsPage';
+export { AccessLogsPage } from './AccessLogsPage';
+export { CampusStatePage } from './CampusStatePage';
+export { StudentEntryPage } from './StudentEntryPage';
+export { StudentExitPage } from './StudentExitPage';
+export { VisitorEntryPage } from './VisitorEntryPage';
+export { VisitorExitPage } from './VisitorExitPage';
