@@ -6,6 +6,8 @@ A comprehensive campus access control system designed to manage student and visi
 
 The Campus Security System is a full-stack application comprising a Python FastAPI backend and a React frontend. It implements a campus gate management solution that enforces entry/exit policies, tracks access logs, and maintains real-time campus occupancy state.
 
+Production Frontend: https://security-system-kappa.vercel.app/
+
 ## Technology Stack
 
 ### Backend
