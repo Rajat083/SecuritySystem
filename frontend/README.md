@@ -1,7 +1,5 @@
 # Campus Security System - Frontend
 
-## Live-Link: https://security-system-frontend-lovat.vercel.app/
-
 A production-grade React frontend application for managing campus security and access control, built with modern best practices and enterprise-ready architecture.
 
 ## 🚀 Quick Start
