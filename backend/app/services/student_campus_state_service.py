@@ -39,37 +39,46 @@ class StudentCampusStateService(ICampusStateService):
         **kwargs
     ) -> None:
         """
-        Mark a student as currently inside campus.
+        Mark a student as currently inside campus using atomic operations.
+        Uses $setOnInsert to set initial values only on document creation.
+        Prevents duplicate entries with conditional update.
         """
-        state = CampusState(
-            user_name=user_name,
-            phone_number=phone_number,
-            user_type="student",
-            identifier=identifier,
-            is_inside=True,
-            last_entry_time=datetime.utcnow(),
-            last_exit_time=None
-        )
+        update_operation = {
+            "$set": {
+                "user_type": "student",
+                "identifier": identifier,
+                "user_name": user_name,
+                "phone_number": phone_number,
+                "is_inside": True,
+                "last_entry_time": datetime.utcnow(),
+                "last_exit_time": None
+            },
+            "$setOnInsert": {
+                "created_at": datetime.utcnow(),
+                "user_type": "student",
+                "identifier": identifier
+            }
+        }
 
         try:
-            # Atomically set inside when not already inside; insert when missing
+            # Atomic update with condition: only update if not already inside
             result = await campus_state_collection.update_one(
                 {
                     "user_type": "student",
                     "identifier": identifier,
                     "is_inside": {"$ne": True}
                 },
-                {
-                    "$set": state.dict()
-                },
+                update_operation,
                 upsert=True
             )
+            
+            # Check if document was actually matched (already exists and not inside)
+            if result.matched_count == 0 and result.upserted_id is None:
+                # No document matched and no new document was inserted
+                raise ValueError(f"Student {identifier} is already inside campus")
+                
         except DuplicateKeyError:
-            # Unique index prevents duplicate docs; treat as already inside
-            raise ValueError(f"Student {identifier} is already inside campus")
-
-        if result.matched_count == 0 and result.upserted_id is None:
-            # No document updated and no upsert happened ⇒ was already inside
+            # Unique index violation means document already exists and is inside
             raise ValueError(f"Student {identifier} is already inside campus")
 
     async def mark_outside(
@@ -82,28 +91,34 @@ class StudentCampusStateService(ICampusStateService):
         **kwargs
     ) -> None:
         """
-        Mark a student as currently outside campus.
-        For students, we update is_inside to False while maintaining the record.
+        Mark a student as currently outside campus using atomic operations.
+        Uses atomic $set with $setOnInsert to ensure consistency.
         """
-        update_data = {
+        set_data = {
             "is_inside": False,
             "last_exit_time": datetime.utcnow()
         }
         
         if user_name:
-            update_data["user_name"] = user_name
+            set_data["user_name"] = user_name
         if phone_number:
-            update_data["phone_number"] = phone_number
+            set_data["phone_number"] = phone_number
         if purpose:
-            update_data["purpose"] = purpose
+            set_data["last_exit_purpose"] = purpose
         
+        # Atomic update with setOnInsert for new documents
         await campus_state_collection.update_one(
             {
                 "user_type": "student",
                 "identifier": identifier
             },
             {
-                "$set": update_data
+                "$set": set_data,
+                "$setOnInsert": {
+                    "created_at": datetime.utcnow(),
+                    "user_type": "student",
+                    "identifier": identifier
+                }
             },
             upsert=True
         )

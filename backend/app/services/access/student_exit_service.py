@@ -52,8 +52,11 @@ class StudentExitService:
             return_by=return_by
         )
         
+        # Atomically insert exit permission with timestamps for tracking and cleanup
         await exit_permissions_collection.insert_one({
             "student_roll": student.identifier,
+            "created_at": datetime.utcnow(),
+            "expires_at": return_by,
             **artifact
         })
         

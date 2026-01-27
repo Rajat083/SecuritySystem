@@ -38,27 +38,36 @@ class VisitorCampusStateService(ICampusStateService):
         **kwargs
     ) -> None:
         """
-        Mark a visitor as currently inside campus.
-        Uses upsert to update or create the record.
+        Mark a visitor as currently inside campus using atomic operations.
+        Uses $setOnInsert to set creation metadata only on document creation.
+        Uses upsert for atomic update-or-create behavior.
         """
-        state = CampusState(
-            user_name=user_name,
-            phone_number=phone_number,
-            number_of_visitors=number_of_visitors,
-            user_type="visitor",
-            identifier=identifier,
-            is_inside=True,
-            last_entry_time=datetime.utcnow(),
-            last_exit_time=None
-        )
+        set_data = {
+            "user_name": user_name,
+            "phone_number": phone_number,
+            "user_type": "visitor",
+            "identifier": identifier,
+            "is_inside": True,
+            "last_entry_time": datetime.utcnow(),
+            "last_exit_time": None
+        }
         
+        if number_of_visitors is not None:
+            set_data["number_of_visitors"] = number_of_visitors
+        
+        # Atomic upsert with $setOnInsert for creation metadata
         await campus_state_collection.update_one(
             {
                 "user_type": "visitor",
                 "identifier": identifier
             },
             {
-                "$set": state.dict()
+                "$set": set_data,
+                "$setOnInsert": {
+                    "created_at": datetime.utcnow(),
+                    "user_type": "visitor",
+                    "identifier": identifier
+                }
             },
             upsert=True
         )
@@ -71,10 +80,9 @@ class VisitorCampusStateService(ICampusStateService):
     ) -> None:
         """
         Mark a visitor as currently outside campus.
-        For visitors, we delete the record completely on exit.
+        Atomically deletes the visitor record on exit.
         """
         result = await campus_state_collection.delete_one({
             "user_type": "visitor",
             "identifier": identifier
         })
-        print(f"Deleted visitor {identifier}, deleted_count: {result.deleted_count}")

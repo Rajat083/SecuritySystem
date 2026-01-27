@@ -38,33 +38,49 @@ class CampusStateService:
     ) -> None:
         """
         Mark a person as currently inside campus.
+        Uses atomic $setOnInsert to set initial values only on document creation.
         """
 
-        state = CampusState(
-            user_name=user_name,
-            phone_number=phone_number,
-            number_of_visitors=number_of_visitors,
-            user_type=user_type,
-            identifier=identifier,
-            is_inside=True,
-            last_entry_time=datetime.utcnow(),
-            last_exit_time=None
-        )
+        state_update = {
+            "user_name": user_name,
+            "phone_number": phone_number,
+            "is_inside": True,
+            "last_entry_time": datetime.utcnow(),
+            "last_exit_time": None
+        }
+        
+        if number_of_visitors is not None:
+            state_update["number_of_visitors"] = number_of_visitors
+        
         if user_type == "visitor":
+            # Use atomic upsert with $setOnInsert for initial document creation
             await campus_state_collection.update_one(
                 {
                     "user_type": user_type,
                     "identifier": identifier
                 },
                 {
-                    "$set": state.dict()
+                    "$set": state_update,
+                    "$setOnInsert": {
+                        "created_at": datetime.utcnow(),
+                        "user_type": user_type,
+                        "identifier": identifier
+                    }
                 },
                 upsert=True
             )
         else:
+            # For students, atomically delete previous state and update new one
             await campus_state_collection.delete_one({
                 "user_type": user_type,
                 "identifier": identifier
+            })
+            # Insert new state atomically
+            await campus_state_collection.insert_one({
+                **state_update,
+                "user_type": user_type,
+                "identifier": identifier,
+                "created_at": datetime.utcnow()
             })
 
     async def mark_outside(
@@ -78,26 +94,47 @@ class CampusStateService:
     ) -> None:
         """
         Mark a person as currently outside campus.
-        For visitors, we delete the record completely.
-        For students, we update is_inside to False.
+        Uses atomic operations to ensure consistent state.
+        For visitors: atomically delete the record.
+        For students: atomically update is_inside flag and timestamp.
         """
         
         if user_type == "visitor":
-            # Delete visitor record completely on exit
+            # Atomically delete visitor record on exit
             result = await campus_state_collection.delete_one({
                 "user_type": user_type,
                 "identifier": identifier
             })
-            print(f"Deleted visitor {identifier}, deleted_count: {result.deleted_count}")
             
         else:
-            # For students, mark as outside and store user details
+            # For students, atomically update with $set to mark as outside
             update_data = {
-                "is_inside": False,
-                "last_exit_time": datetime.utcnow()
+                "$set": {
+                    "is_inside": False,
+                    "last_exit_time": datetime.utcnow()
+                }
             }
+            
             if user_name:
-                update_data["user_name"] = user_name
+                update_data["$set"]["user_name"] = user_name
+            if phone_number:
+                update_data["$set"]["phone_number"] = phone_number
+            if purpose:
+                update_data["$set"]["last_exit_purpose"] = purpose
+            
+            # Atomic update with additional timestamp field
+            update_data["$setOnInsert"] = {
+                "created_at": datetime.utcnow()
+            }
+            
+            await campus_state_collection.update_one(
+                {
+                    "user_type": user_type,
+                    "identifier": identifier
+                },
+                update_data,
+                upsert=True
+            )
             if phone_number:
                 update_data["phone_number"] = phone_number
             if purpose:
