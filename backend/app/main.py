@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import os
+from dotenv import load_dotenv
 
 from app.api.student_routes import router as student_router
 from app.api.visitor_routes import router as visitor_router
@@ -9,6 +11,9 @@ from app.core.database.client import MongoClient
 from app.core.database.indexes import create_indexes
 from app.api.auth_routes import router as auth_router
 from app.api.admin_routes import router as admin_router
+
+# Load environment variables
+load_dotenv()
 
 
 @asynccontextmanager
@@ -29,12 +34,16 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Parse allowed origins from environment variable
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 @app.get("/")
